@@ -13,7 +13,11 @@ function rwdpwa_register_order_routing() {
 }
 
 /**
- * @param string   $recipient Default recipient string.
+ * Route the WooCommerce new-order email recipient to nearby dealer emails,
+ * in addition to whatever recipient(s) are configured on WooCommerce >
+ * Settings > Emails > New Order.
+ *
+ * @param string   $recipient Configured recipient string.
  * @param WC_Order $order     WooCommerce order object.
  * @return string
  */
@@ -27,7 +31,9 @@ function rwdpwa_route_new_order_email( $recipient, $order ) {
 		return $recipient;
 	}
 
-	return implode( ', ', array_unique( $dealer_emails ) );
+	$configured_emails = array_filter( array_map( 'trim', explode( ',', (string) $recipient ) ), 'is_email' );
+
+	return implode( ', ', array_unique( array_merge( $configured_emails, $dealer_emails ) ) );
 }
 
 /**
