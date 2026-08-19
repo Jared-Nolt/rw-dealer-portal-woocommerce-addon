@@ -40,6 +40,10 @@ function rwdpwa_get_default_settings() {
 			'hide_prices'    => true,
 			'pewc_accordion' => true,
 		),
+		'email_messages'      => array(
+			'admin_message'  => '',
+			'dealer_message' => '',
+		),
 	);
 }
 
@@ -150,6 +154,12 @@ function rwdpwa_sanitize_settings( $input ) {
 		'pewc_accordion' => ! empty( $overrides['pewc_accordion'] ),
 	);
 
+	$messages               = is_array( $input['email_messages'] ?? null ) ? $input['email_messages'] : array();
+	$clean['email_messages'] = array(
+		'admin_message'  => sanitize_textarea_field( $messages['admin_message'] ?? '' ),
+		'dealer_message' => sanitize_textarea_field( $messages['dealer_message'] ?? '' ),
+	);
+
 	return $clean;
 }
 
@@ -187,6 +197,26 @@ function rwdpwa_get_custom_text() {
 	$settings = rwdpwa_get_settings();
 	$text     = trim( (string) $settings['wc_overrides']['custom_text'] );
 	return '' !== $text ? $text : 'quote request';
+}
+
+/**
+ * Custom message shown in the configured recipient's copy of the New Order email.
+ *
+ * @return string
+ */
+function rwdpwa_get_admin_email_message() {
+	$settings = rwdpwa_get_settings();
+	return trim( (string) $settings['email_messages']['admin_message'] );
+}
+
+/**
+ * Custom message shown in the nearest dealer's separate notification email.
+ *
+ * @return string
+ */
+function rwdpwa_get_dealer_email_message() {
+	$settings = rwdpwa_get_settings();
+	return trim( (string) $settings['email_messages']['dealer_message'] );
 }
 
 /**

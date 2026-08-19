@@ -182,17 +182,18 @@ function rwdpwa_render_settings_page() {
 		wp_die( esc_html__( 'You do not have permission to access this page.', 'rw-dealer-portal-woocommerce-addon' ) );
 	}
 
-	$settings   = rwdpwa_get_settings();
-	$cpt        = $settings['custom_post_type'];
-	$user_role  = $settings['user_role'];
-	$overrides  = $settings['wc_overrides'];
-	$post_types = rwdpwa_get_selectable_post_types();
-	$roles      = rwdpwa_get_selectable_roles();
+	$settings       = rwdpwa_get_settings();
+	$cpt            = $settings['custom_post_type'];
+	$user_role      = $settings['user_role'];
+	$overrides      = $settings['wc_overrides'];
+	$email_messages = $settings['email_messages'];
+	$post_types     = rwdpwa_get_selectable_post_types();
+	$roles          = rwdpwa_get_selectable_roles();
 	?>
 	<div class="wrap rwdpwa-settings">
 		<h1><?php esc_html_e( 'RW Dealer Portal WooCommerce Addon', 'rw-dealer-portal-woocommerce-addon' ); ?></h1>
 		<p class="rwdpwa-intro">
-			<?php esc_html_e( 'When a WooCommerce order is created, this add-on looks up the customer address, finds nearby dealers, and sends the order notification email to their contact address(es) instead of the site admin.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+			<?php esc_html_e( 'When a WooCommerce order is created, this add-on looks up the customer address, finds nearby dealers, and sends the order notification email to their contact address(es) in addition to the Store Manager email set in WooCommerce > Settings > Emails > New Order.', 'rw-dealer-portal-woocommerce-addon' ); ?>
 		</p>
 
 		<form method="post" action="options.php">
@@ -376,6 +377,38 @@ function rwdpwa_render_settings_page() {
 								<input type="checkbox" name="rwdpwa_settings[wc_overrides][pewc_accordion]" value="1" <?php checked( $overrides['pewc_accordion'] ); ?> />
 								<?php esc_html_e( 'If Product Add-ons (PEWC) is active, display its groups as closed accordions.', 'rw-dealer-portal-woocommerce-addon' ); ?>
 							</label>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div class="rwdpwa-card">
+				<h2><?php esc_html_e( 'Email Messages', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'This plugin now sends two separate emails when a dealer is matched: the native WooCommerce New Order email (to the recipient configured under WooCommerce > Settings > Emails > New Order), and a standalone email to the nearest dealer within the search radius above. Add an optional message to include in each.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+				<p class="description">
+					<?php
+					printf(
+						/* translators: 1-3: token placeholders, kept untranslated */
+						esc_html__( 'Available tokens (either message can use these): %1$s the matched dealer\'s name, %2$s their email address(es), %3$s the distance in miles. Tokens are replaced automatically when the email sends; if no dealer was matched, they\'re replaced with nothing.', 'rw-dealer-portal-woocommerce-addon' ),
+						'<code>{dealer_name}</code>',
+						'<code>{dealer_email}</code>',
+						'<code>{dealer_distance}</code>'
+					); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the three %s are hardcoded <code> markup, not user input.
+					?>
+				</p>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="rwdpwa-admin-email-message"><?php esc_html_e( 'Message for the Configured Recipient', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
+						<td>
+							<textarea id="rwdpwa-admin-email-message" name="rwdpwa_settings[email_messages][admin_message]" class="large-text" rows="4"><?php echo esc_textarea( $email_messages['admin_message'] ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'Shown in the email sent to the WooCommerce New Order recipient, alongside a note naming the nearest dealer if one was notified separately.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="rwdpwa-dealer-email-message"><?php esc_html_e( 'Message for the Nearest Dealer', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
+						<td>
+							<textarea id="rwdpwa-dealer-email-message" name="rwdpwa_settings[email_messages][dealer_message]" class="large-text" rows="4"><?php echo esc_textarea( $email_messages['dealer_message'] ); ?></textarea>
+							<p class="description"><?php esc_html_e( 'Shown only in the standalone email sent to the nearest dealer, when one is matched within the search radius.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 						</td>
 					</tr>
 				</table>
