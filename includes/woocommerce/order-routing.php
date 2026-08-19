@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function rwdpwa_register_order_routing() {
 	add_filter( 'woocommerce_email_recipient_new_order', 'rwdpwa_trigger_dealer_notification', 10, 2 );
 	add_action( 'woocommerce_email_order_meta', 'rwdpwa_render_email_custom_message', 20, 4 );
+	add_action( 'rwdpwa_send_dealer_notification', 'rwdpwa_handle_scheduled_dealer_notification' );
 }
 
 /**
@@ -21,8 +22,10 @@ function rwdpwa_register_order_routing() {
  * signal that WooCommerce is actually about to send its native New Order
  * email (this filter only ever runs from inside that send flow, after
  * WooCommerce's own enabled/resend guards have already passed). The
- * recipient itself is left untouched; as a side effect, this fires a
- * separate notification to the nearest dealer when one is within radius.
+ * recipient itself is left untouched; as a side effect, this schedules a
+ * separate notification to the nearest dealer (when one is within radius)
+ * to run moments later in the background, rather than building and sending
+ * that whole extra email synchronously inline with the checkout request.
  *
  * @param string   $recipient Configured recipient string.
  * @param WC_Order $order     WooCommerce order object.
@@ -35,23 +38,58 @@ function rwdpwa_trigger_dealer_notification( $recipient, $order ) {
 
 	$dealer = rwdpwa_get_nearest_dealer_for_order( $order );
 	if ( $dealer ) {
-		rwdpwa_send_dealer_notification_email( $order, $dealer );
+		$args = array( $order->get_id() );
+		if ( function_exists( 'as_schedule_single_action' ) ) {
+			as_schedule_single_action( time(), 'rwdpwa_send_dealer_notification', $args );
+		} else {
+			wp_schedule_single_event( time(), 'rwdpwa_send_dealer_notification', $args );
+		}
 	}
 
 	return $recipient;
 }
 
 /**
+ * Scheduled-action handler: re-resolves the nearest dealer (fresh — a
+ * scheduled action runs in its own request, so nothing from the checkout
+ * request's per-request cache carries over) and sends its notification email.
+ *
+ * @param int $order_id Order ID.
+ */
+function rwdpwa_handle_scheduled_dealer_notification( $order_id ) {
+	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		return;
+	}
+
+	$dealer = rwdpwa_get_nearest_dealer_for_order( $order );
+	if ( $dealer ) {
+		rwdpwa_send_dealer_notification_email( $order, $dealer );
+	}
+}
+
+/**
  * Resolve the single nearest dealer to the order address, if within the
- * configured radius.
+ * configured radius. Cached per order ID for the lifetime of the current
+ * request, since this plugin computes it more than once per checkout (once
+ * to decide whether to schedule a dealer notification, again when the
+ * admin's own email content is built) and each lookup costs a live geocode
+ * HTTP call.
  *
  * @param WC_Order $order WooCommerce order object.
  * @return array{label: string, emails: array<string>, distance: float}|null
  */
 function rwdpwa_get_nearest_dealer_for_order( $order ) {
+	static $cache = array();
+
+	$order_id = $order->get_id();
+	if ( array_key_exists( $order_id, $cache ) ) {
+		return $cache[ $order_id ];
+	}
+
 	$coords = rwdpwa_get_order_coordinates( $order );
 	if ( empty( $coords ) ) {
-		return null;
+		return $cache[ $order_id ] = null;
 	}
 
 	$radius     = rwdpwa_get_radius_miles();
@@ -71,10 +109,10 @@ function rwdpwa_get_nearest_dealer_for_order( $order ) {
 	}
 
 	if ( null === $nearest || $nearest['distance'] > $radius ) {
-		return null;
+		return $cache[ $order_id ] = null;
 	}
 
-	return $nearest;
+	return $cache[ $order_id ] = $nearest;
 }
 
 /**

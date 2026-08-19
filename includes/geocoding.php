@@ -95,7 +95,10 @@ function rwdpwa_geocode_address( $address ) {
 		'key'     => $api_key,
 	), 'https://maps.googleapis.com/maps/api/geocode/json' );
 
-	$response = wp_remote_get( $url, array( 'timeout' => 10 ) );
+	// Kept short since an order-address geocode can run synchronously during
+	// checkout (see includes/woocommerce/order-routing.php) — this bounds the
+	// worst case rather than letting a slow API response stall the customer.
+	$response = wp_remote_get( $url, array( 'timeout' => 5 ) );
 	if ( is_wp_error( $response ) ) {
 		return false;
 	}
