@@ -37,7 +37,7 @@ function rwdpwa_trigger_dealer_notification( $recipient, $order ) {
 	}
 
 	$dealer = rwdpwa_get_nearest_dealer_for_order( $order );
-	if ( $dealer ) {
+	if ( $dealer && rwdpwa_claim_dealer_notification( $order->get_id() ) ) {
 		$args = array( $order->get_id() );
 		if ( function_exists( 'as_schedule_single_action' ) ) {
 			as_schedule_single_action( time(), 'rwdpwa_send_dealer_notification', $args );
@@ -47,6 +47,33 @@ function rwdpwa_trigger_dealer_notification( $recipient, $order ) {
 	}
 
 	return $recipient;
+}
+
+/**
+ * Atomically claim the right to notify this order's dealer, so a burst of
+ * near-simultaneous requests for the same order (e.g. checkout retries
+ * hitting multiple PHP-FPM workers at once) can only ever result in ONE
+ * notification being scheduled, no matter how many arrive at the same time.
+ *
+ * Uses a plain `wp_options` row rather than order meta because
+ * `option_name` carries a real database UNIQUE KEY constraint, making the
+ * claim atomic at the database level — order meta (postmeta or WooCommerce's
+ * HPOS order-meta table) does not guarantee that, since checking "already
+ * claimed?" and writing the claim are separate steps there, leaving a race
+ * window under concurrent requests.
+ *
+ * @param int $order_id Order ID.
+ * @return bool True if this call won the claim (proceed to schedule); false if another request already claimed it.
+ */
+function rwdpwa_claim_dealer_notification( $order_id ) {
+	global $wpdb;
+
+	$inserted = $wpdb->query( $wpdb->prepare(
+		"INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, '1', 'no')",
+		'rwdpwa_dealer_notified_' . absint( $order_id )
+	) );
+
+	return 1 === (int) $inserted;
 }
 
 /**
@@ -121,15 +148,17 @@ function rwdpwa_get_nearest_dealer_for_order( $order ) {
  * consistent with the native admin email, just addressed differently and
  * carrying its own configured message (via rwdpwa_render_email_custom_message()).
  *
+ * Duplicate-send prevention happens earlier, at scheduling time, via
+ * rwdpwa_claim_dealer_notification() — this function trusts it was only
+ * ever invoked once per order. The `_rwdpwa_dealer_notified` order meta set
+ * below is just a human-readable record (visible on the order) of which
+ * dealer got notified, not itself a guard against re-sending.
+ *
  * @param WC_Order $order  WooCommerce order object.
  * @param array    $dealer {label, emails, distance} as returned by rwdpwa_get_nearest_dealer_for_order().
  * @return bool Whether the email was sent.
  */
 function rwdpwa_send_dealer_notification_email( $order, $dealer ) {
-	if ( $order->get_meta( '_rwdpwa_dealer_notified' ) ) {
-		return false;
-	}
-
 	$to = implode( ', ', array_filter( array_map( 'sanitize_email', $dealer['emails'] ), 'is_email' ) );
 	if ( ! $to ) {
 		return false;
