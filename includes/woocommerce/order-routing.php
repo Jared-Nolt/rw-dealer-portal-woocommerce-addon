@@ -148,17 +148,27 @@ function rwdpwa_get_nearest_dealer_for_order( $order ) {
  * consistent with the native admin email, just addressed differently and
  * carrying its own configured message (via rwdpwa_render_email_custom_message()).
  *
- * Duplicate-send prevention happens earlier, at scheduling time, via
- * rwdpwa_claim_dealer_notification() — this function trusts it was only
- * ever invoked once per order. The `_rwdpwa_dealer_notified` order meta set
- * below is just a human-readable record (visible on the order) of which
- * dealer got notified, not itself a guard against re-sending.
+ * Duplicate-send prevention is layered:
+ * - rwdpwa_claim_dealer_notification() (at scheduling time) is the real
+ *   guard against a BURST of near-simultaneous requests for the same order
+ *   — an atomic DB-level claim, immune to concurrency.
+ * - The `_rwdpwa_dealer_notified` order-meta check below is a second,
+ *   sequential-only safety net: it only matters if this function somehow
+ *   runs a second time for the same order minutes apart (e.g. Action
+ *   Scheduler reclaiming a stalled action after a PHP timeout/OOM killed
+ *   a prior attempt mid-send) — not a concurrency guard by itself, since a
+ *   check-then-set gap of microseconds within one execution is irrelevant
+ *   once the scheduling-time claim has already ruled out concurrent starts.
  *
  * @param WC_Order $order  WooCommerce order object.
  * @param array    $dealer {label, emails, distance} as returned by rwdpwa_get_nearest_dealer_for_order().
  * @return bool Whether the email was sent.
  */
 function rwdpwa_send_dealer_notification_email( $order, $dealer ) {
+	if ( $order->get_meta( '_rwdpwa_dealer_notified' ) ) {
+		return false;
+	}
+
 	$to = implode( ', ', array_filter( array_map( 'sanitize_email', $dealer['emails'] ), 'is_email' ) );
 	if ( ! $to ) {
 		return false;
@@ -169,6 +179,12 @@ function rwdpwa_send_dealer_notification_email( $order, $dealer ) {
 		return false;
 	}
 	$new_order_email = $emails['WC_Email_New_Order'];
+
+	// Required before get_subject()/get_heading()/get_additional_content() below:
+	// those substitute placeholders like {order_number} using this instance's
+	// own $object property, which a freshly-fetched instance (this runs in its
+	// own request, via the scheduled action) has never had set to our order.
+	$new_order_email->set_object( $order );
 
 	$html = wc_get_template_html(
 		'emails/admin-new-order.php',
