@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 function rwdpwa_register_order_routing() {
 	add_filter( 'woocommerce_email_recipient_new_order', 'rwdpwa_trigger_dealer_notification', 10, 2 );
-	add_action( 'woocommerce_email_order_meta', 'rwdpwa_render_email_custom_message', 20, 4 );
+	add_action( 'woocommerce_email_order_details', 'rwdpwa_render_email_custom_message', 5, 4 );
 	add_action( 'rwdpwa_send_dealer_notification', 'rwdpwa_handle_scheduled_dealer_notification' );
 }
 
@@ -185,6 +185,14 @@ function rwdpwa_send_dealer_notification_email( $order, $dealer ) {
 	// own $object property, which a freshly-fetched instance (this runs in its
 	// own request, via the scheduled action) has never had set to our order.
 	$new_order_email->set_object( $order );
+
+	// set_object() alone isn't enough: WooCommerce's own trigger() populates
+	// the {order_number}/{order_date} *text* placeholders separately (see
+	// WC_Email_New_Order::trigger()) — since we deliberately never call
+	// trigger() here (that would re-send the native admin email too), these
+	// have to be set by hand or the subject/heading show a blank "#".
+	$new_order_email->placeholders['{order_date}']   = wc_format_datetime( $order->get_date_created() );
+	$new_order_email->placeholders['{order_number}'] = $order->get_order_number();
 
 	$html = wc_get_template_html(
 		'emails/admin-new-order.php',
