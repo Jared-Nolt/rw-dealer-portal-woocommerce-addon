@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RW Dealer Portal WooCommerce Addon
  * Description: Routes WooCommerce order emails to nearby dealers based on the checkout address and a configurable radius. Dealers can come from RW Dealer Portal, a custom post type, or WordPress users with a chosen role. Also includes optional WooCommerce text/pricing overrides.
- * Version: 1.1.1
+ * Version: 1.1.11
  * Author: Rosewood Marketing
  * License: GPLv2 or later
  * Requires Plugins: woocommerce
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'RWDPWA_VERSION' ) ) {
-	define( 'RWDPWA_VERSION', '1.1.1' );
+	define( 'RWDPWA_VERSION', '1.1.11' );
 }
 define( 'RWDPWA_PLUGIN_FILE', __FILE__ );
 define( 'RWDPWA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
