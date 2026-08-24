@@ -271,7 +271,7 @@ function rwdpwa_render_email_custom_message( $order, $sent_to_admin, $plain_text
 		if ( $dealer ) {
 			$note = sprintf(
 				/* translators: 1: dealer name, 2: dealer email address(es) */
-				__( 'This order was also sent separately to the nearest dealer: %1$s (%2$s).', 'rw-dealer-portal-woocommerce-addon' ),
+				__( 'For your records: A copy of this request was dispatched to: %1$s (%2$s).', 'rw-dealer-portal-woocommerce-addon' ),
 				$dealer['label'],
 				implode( ', ', $dealer['emails'] )
 			);
