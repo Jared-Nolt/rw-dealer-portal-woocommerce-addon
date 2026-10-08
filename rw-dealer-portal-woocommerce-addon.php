@@ -68,12 +68,10 @@ function rwdpwa_bootstrap() {
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/order-routing.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/text-overrides.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/price-display.php';
-	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/pewc-integration.php';
 
 	rwdpwa_register_order_routing();
 	rwdpwa_register_text_overrides();
 	rwdpwa_register_price_display();
-	rwdpwa_register_pewc_integration();
 	rwdpwa_register_geocode_cache_hooks();
 
 	if ( is_admin() ) {

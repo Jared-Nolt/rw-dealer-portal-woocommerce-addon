@@ -370,15 +370,6 @@ function rwdpwa_render_settings_page() {
 							</label>
 						</td>
 					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'PEWC Accordion', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="rwdpwa_settings[wc_overrides][pewc_accordion]" value="1" <?php checked( $overrides['pewc_accordion'] ); ?> />
-								<?php esc_html_e( 'If Product Add-ons (PEWC) is active, display its groups as closed accordions.', 'rw-dealer-portal-woocommerce-addon' ); ?>
-							</label>
-						</td>
-					</tr>
 				</table>
 			</div>
 

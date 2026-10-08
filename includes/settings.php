@@ -38,7 +38,6 @@ function rwdpwa_get_default_settings() {
 			'text_overrides' => true,
 			'custom_text'    => 'quote request',
 			'hide_prices'    => true,
-			'pewc_accordion' => true,
 		),
 		'email_messages'      => array(
 			'admin_message'  => '',
@@ -151,7 +150,6 @@ function rwdpwa_sanitize_settings( $input ) {
 		'text_overrides' => ! empty( $overrides['text_overrides'] ),
 		'custom_text'    => '' !== $custom_text ? $custom_text : $defaults['wc_overrides']['custom_text'],
 		'hide_prices'    => ! empty( $overrides['hide_prices'] ),
-		'pewc_accordion' => ! empty( $overrides['pewc_accordion'] ),
 	);
 
 	$messages               = is_array( $input['email_messages'] ?? null ) ? $input['email_messages'] : array();
@@ -180,7 +178,7 @@ function rwdpwa_get_dealer_source() {
 }
 
 /**
- * @param string $key One of 'text_overrides', 'hide_prices', 'pewc_accordion'.
+ * @param string $key One of 'text_overrides', 'hide_prices'.
  * @return bool
  */
 function rwdpwa_wc_override_enabled( $key ) {
