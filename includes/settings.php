@@ -38,6 +38,8 @@ function rwdpwa_get_default_settings() {
 			'text_overrides' => true,
 			'custom_text'    => 'quote request',
 			'hide_prices'    => true,
+			'free_label'     => false, // Show text instead of $0.00 for zero-priced items.
+			'free_text'      => 'Free',
 		),
 		'email_messages'      => array(
 			'admin_message'  => '',
@@ -146,10 +148,13 @@ function rwdpwa_sanitize_settings( $input ) {
 
 	$overrides         = is_array( $input['wc_overrides'] ?? null ) ? $input['wc_overrides'] : array();
 	$custom_text       = sanitize_text_field( $overrides['custom_text'] ?? '' );
+	$free_text         = sanitize_text_field( $overrides['free_text'] ?? '' );
 	$clean['wc_overrides'] = array(
 		'text_overrides' => ! empty( $overrides['text_overrides'] ),
 		'custom_text'    => '' !== $custom_text ? $custom_text : $defaults['wc_overrides']['custom_text'],
 		'hide_prices'    => ! empty( $overrides['hide_prices'] ),
+		'free_label'     => ! empty( $overrides['free_label'] ),
+		'free_text'      => '' !== $free_text ? $free_text : $defaults['wc_overrides']['free_text'],
 	);
 
 	$messages               = is_array( $input['email_messages'] ?? null ) ? $input['email_messages'] : array();
@@ -178,7 +183,7 @@ function rwdpwa_get_dealer_source() {
 }
 
 /**
- * @param string $key One of 'text_overrides', 'hide_prices'.
+ * @param string $key One of 'text_overrides', 'hide_prices', 'free_label'.
  * @return bool
  */
 function rwdpwa_wc_override_enabled( $key ) {
@@ -195,6 +200,17 @@ function rwdpwa_get_custom_text() {
 	$settings = rwdpwa_get_settings();
 	$text     = trim( (string) $settings['wc_overrides']['custom_text'] );
 	return '' !== $text ? $text : 'quote request';
+}
+
+/**
+ * Label shown in place of $0.00 for zero-priced items (e.g. "Free").
+ *
+ * @return string
+ */
+function rwdpwa_get_free_text() {
+	$settings = rwdpwa_get_settings();
+	$text     = trim( (string) $settings['wc_overrides']['free_text'] );
+	return '' !== $text ? $text : 'Free';
 }
 
 /**
