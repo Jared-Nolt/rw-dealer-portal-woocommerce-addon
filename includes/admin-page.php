@@ -370,6 +370,20 @@ function rwdpwa_render_settings_page() {
 							</label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Free Item Label', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[wc_overrides][free_label]" value="1" <?php checked( $overrides['free_label'] ); ?> />
+								<?php esc_html_e( 'Show a label instead of $0.00 for items priced at zero (product pages, shop, cart).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p>
+								<label for="rwdpwa-free-text"><?php esc_html_e( 'Label:', 'rw-dealer-portal-woocommerce-addon' ); ?></label>
+								<input type="text" id="rwdpwa-free-text" name="rwdpwa_settings[wc_overrides][free_text]" value="<?php echo esc_attr( $overrides['free_text'] ); ?>" class="regular-text" placeholder="Free" />
+							</p>
+							<p class="description"><?php esc_html_e( 'Only applies when "Hide Prices & Totals" is off.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
 				</table>
 			</div>
 
