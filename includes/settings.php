@@ -58,6 +58,7 @@ function rwdpwa_get_default_settings() {
 		),
 		'store_access'        => array(
 			'members_only' => false, // Store, cart and checkout for approved RW Dealer Portal members only.
+			'store_page'   => 0,     // Page that replaces /shop/ and "Return to shop" links (e.g. a POP page).
 		),
 	);
 }
@@ -199,6 +200,7 @@ function rwdpwa_sanitize_settings( $input ) {
 	$access                = is_array( $input['store_access'] ?? null ) ? $input['store_access'] : array();
 	$clean['store_access'] = array(
 		'members_only' => ! empty( $access['members_only'] ),
+		'store_page'   => absint( $access['store_page'] ?? 0 ),
 	);
 
 	return $clean;
@@ -267,6 +269,17 @@ function rwdpwa_quote_checkout_enabled() {
 function rwdpwa_members_only_store_enabled() {
 	$settings = rwdpwa_get_settings();
 	return ! empty( $settings['store_access']['members_only'] );
+}
+
+/**
+ * Published page that stands in for the shop page, or 0.
+ *
+ * @return int
+ */
+function rwdpwa_get_store_page_id() {
+	$settings = rwdpwa_get_settings();
+	$page_id  = absint( $settings['store_access']['store_page'] ?? 0 );
+	return $page_id && 'publish' === get_post_status( $page_id ) ? $page_id : 0;
 }
 
 /**

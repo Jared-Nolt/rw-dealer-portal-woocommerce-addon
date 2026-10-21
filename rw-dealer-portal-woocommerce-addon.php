@@ -70,12 +70,14 @@ function rwdpwa_bootstrap() {
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/price-display.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/quote-checkout.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/members-only-store.php';
+	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/product-list.php';
 
 	rwdpwa_register_order_routing();
 	rwdpwa_register_text_overrides();
 	rwdpwa_register_price_display();
 	rwdpwa_register_quote_checkout();
 	rwdpwa_register_members_only_store();
+	rwdpwa_register_product_list();
 	rwdpwa_register_geocode_cache_hooks();
 
 	if ( is_admin() ) {

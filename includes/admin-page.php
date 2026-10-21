@@ -458,7 +458,22 @@ function rwdpwa_render_settings_page() {
 							<?php if ( ! function_exists( 'rwdp_current_user_has_portal_access' ) ) : ?>
 								<p class="description"><?php esc_html_e( 'Requires RW Dealer Portal.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 							<?php endif; ?>
-							<p class="description"><?php esc_html_e( 'Pages that show products (e.g. a POP page) are restricted separately in RW Dealer Portal → Settings → Restricted Pages.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Pages that show products (e.g. a POP page) are restricted separately, in that page’s "Portal Access" box (RW Dealer Portal).', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="rwdpwa-store-page"><?php esc_html_e( 'Store Page', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
+						<td>
+							<?php
+							wp_dropdown_pages( array(
+								'name'              => 'rwdpwa_settings[store_access][store_page]',
+								'id'                => 'rwdpwa-store-page',
+								'selected'          => absint( $access['store_page'] ),
+								'show_option_none'  => esc_html__( '— WooCommerce shop page —', 'rw-dealer-portal-woocommerce-addon' ),
+								'option_none_value' => '0',
+							) );
+							?>
+							<p class="description"><?php esc_html_e( 'Optional. A page built with [rwdpwa_product_list] sections (e.g. a POP page). The shop page and "Return to shop" / "Continue shopping" links go here instead.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 						</td>
 					</tr>
 				</table>
