@@ -21,10 +21,45 @@ function rwdpwa_register_product_list() {
 	add_action( 'wp_loaded', 'rwdpwa_product_list_form_add', 20 );
 	add_action( 'wp_enqueue_scripts', 'rwdpwa_product_list_register_assets' );
 
+	$settings = rwdpwa_get_settings();
+	if ( ! empty( $settings['store_access']['style_pages'] ) ) {
+		add_filter( 'body_class', 'rwdpwa_store_pages_body_class' );
+		add_action( 'wp_enqueue_scripts', 'rwdpwa_store_pages_enqueue', 20 );
+	}
+
 	if ( rwdpwa_get_store_page_id() ) {
 		add_filter( 'woocommerce_return_to_shop_redirect', 'rwdpwa_store_page_url' );
 		add_filter( 'woocommerce_continue_shopping_redirect', 'rwdpwa_store_page_url' );
 		add_action( 'template_redirect', 'rwdpwa_redirect_shop_to_store_page', 20 );
+	}
+}
+
+/**
+ * Whether the current page is a WooCommerce cart, checkout or account page.
+ *
+ * @return bool
+ */
+function rwdpwa_is_store_page() {
+	return function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() );
+}
+
+/**
+ * @param string[] $classes Body classes.
+ * @return string[]
+ */
+function rwdpwa_store_pages_body_class( $classes ) {
+	if ( rwdpwa_is_store_page() ) {
+		$classes[] = 'rwdpwa-store';
+	}
+	return $classes;
+}
+
+/**
+ * Load the cart/checkout/account styles on those pages.
+ */
+function rwdpwa_store_pages_enqueue() {
+	if ( rwdpwa_is_store_page() ) {
+		wp_enqueue_style( 'rwdpwa-store-pages', RWDPWA_PLUGIN_URL . 'assets/css/store-pages.css', array( 'woocommerce-general' ), RWDPWA_VERSION );
 	}
 }
 

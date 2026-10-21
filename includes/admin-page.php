@@ -476,6 +476,16 @@ function rwdpwa_render_settings_page() {
 							<p class="description"><?php esc_html_e( 'Optional. A page built with [rwdpwa_product_list] sections (e.g. a POP page). The shop page and "Return to shop" / "Continue shopping" links go here instead.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Store Page Styling', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][style_pages]" value="1" <?php checked( $access['style_pages'] ); ?> />
+								<?php esc_html_e( 'Style the cart, checkout, order-received and My Account pages to match [rwdpwa_product_list] sections.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Colors and fonts come from the same CSS custom properties, e.g. .rwdpwa-pl, body.rwdpwa-store { --rwdpwa-pl-accent: #312d41; --rwdpwa-pl-label-font: "My Font"; }', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
 				</table>
 			</div>
 
