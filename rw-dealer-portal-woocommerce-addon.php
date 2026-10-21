@@ -71,6 +71,7 @@ function rwdpwa_bootstrap() {
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/quote-checkout.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/members-only-store.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/product-list.php';
+	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/dealer-account.php';
 
 	rwdpwa_register_order_routing();
 	rwdpwa_register_text_overrides();
@@ -78,6 +79,7 @@ function rwdpwa_bootstrap() {
 	rwdpwa_register_quote_checkout();
 	rwdpwa_register_members_only_store();
 	rwdpwa_register_product_list();
+	rwdpwa_register_dealer_account();
 	rwdpwa_register_geocode_cache_hooks();
 
 	if ( is_admin() ) {

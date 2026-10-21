@@ -486,6 +486,21 @@ function rwdpwa_render_settings_page() {
 							<p class="description"><?php esc_html_e( 'Colors and fonts come from the same CSS custom properties, e.g. .rwdpwa-pl, body.rwdpwa-store { --rwdpwa-pl-accent: #312d41; --rwdpwa-pl-label-font: "My Font"; }', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Dealer Accounts', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<?php $has_rwdp = function_exists( 'rwdp_get_page_id' ); ?>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][prefill_checkout]" value="1" <?php checked( $access['prefill_checkout'] ); ?> <?php disabled( ! $has_rwdp ); ?> />
+								<?php esc_html_e( 'Pre-fill empty checkout fields from the user\'s RW Dealer Portal dealer (company, address, phone) and profile (name, email).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label><br />
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][simple_account]" value="1" <?php checked( $access['simple_account'] ); ?> <?php disabled( ! $has_rwdp ); ?> />
+								<?php esc_html_e( 'Simplify My Account to Orders, Addresses, Dealer Portal and Log out (opens on Orders).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Place [rwdpwa_store_links] on portal pages for Shop / cart (with item count) / My Orders links.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
 				</table>
 			</div>
 
