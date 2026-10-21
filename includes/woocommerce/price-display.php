@@ -15,6 +15,7 @@ function rwdpwa_register_price_display() {
 			add_filter( 'woocommerce_get_price_html', 'rwdpwa_free_price_html', 20, 2 );
 			add_filter( 'woocommerce_cart_item_price', 'rwdpwa_free_cart_item_price', 20, 2 );
 			add_filter( 'woocommerce_cart_item_subtotal', 'rwdpwa_free_cart_item_price', 20, 2 );
+			add_filter( 'woocommerce_order_formatted_line_subtotal', 'rwdpwa_free_order_line_subtotal', 20, 2 );
 		}
 		return;
 	}
@@ -80,6 +81,21 @@ function rwdpwa_free_price_html( $price_html, $product ) {
 function rwdpwa_free_cart_item_price( $price_html, $cart_item ) {
 	$product = $cart_item['data'] ?? null;
 	return rwdpwa_is_free_product( $product ) ? rwdpwa_free_label_html() : $price_html;
+}
+
+/**
+ * Replace a $0.00 order line (thank-you page, My Account, emails) with the
+ * free label. Only lines that were free before any discount count.
+ *
+ * @param string        $subtotal Formatted line subtotal.
+ * @param WC_Order_Item $item     Order line item.
+ * @return string
+ */
+function rwdpwa_free_order_line_subtotal( $subtotal, $item ) {
+	if ( $item instanceof WC_Order_Item_Product && 0.0 === (float) $item->get_subtotal() && 0.0 === (float) $item->get_total() ) {
+		return rwdpwa_free_label_html();
+	}
+	return $subtotal;
 }
 
 /**

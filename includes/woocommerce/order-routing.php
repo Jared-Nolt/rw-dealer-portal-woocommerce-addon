@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function rwdpwa_register_order_routing() {
+	// Off for stores where customers are the dealers themselves (e.g. POP ordering).
+	if ( ! rwdpwa_dealer_routing_enabled() ) {
+		return;
+	}
+
 	add_filter( 'woocommerce_email_recipient_new_order', 'rwdpwa_trigger_dealer_notification', 10, 2 );
 	add_action( 'woocommerce_email_order_details', 'rwdpwa_render_email_custom_message', 5, 4 );
 	add_action( 'rwdpwa_send_dealer_notification', 'rwdpwa_handle_scheduled_dealer_notification' );

@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: RW Dealer Portal WooCommerce Addon
- * Description: Routes WooCommerce order emails to nearby dealers based on the checkout address and a configurable radius. Dealers can come from RW Dealer Portal, a custom post type, or WordPress users with a chosen role. Also includes optional WooCommerce text/pricing overrides.
- * Version: 1.2.0
+ * Description: Routes WooCommerce order emails to nearby dealers based on the checkout address and a configurable radius. Dealers can come from RW Dealer Portal, a custom post type, or WordPress users with a chosen role. Also includes optional WooCommerce text/pricing overrides, a no-payment quote checkout, and a members-only store.
+ * Version: 1.3.0
  * Author: Rosewood Marketing
  * Author URI: https://github.com/Jared-Nolt/rw-dealer-portal-woocommerce-addon
  * License: GPLv2 or later
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'RWDPWA_VERSION' ) ) {
-	define( 'RWDPWA_VERSION', '1.2.0' );
+	define( 'RWDPWA_VERSION', '1.3.0' );
 }
 define( 'RWDPWA_PLUGIN_FILE', __FILE__ );
 define( 'RWDPWA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -68,10 +68,14 @@ function rwdpwa_bootstrap() {
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/order-routing.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/text-overrides.php';
 	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/price-display.php';
+	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/quote-checkout.php';
+	require_once RWDPWA_PLUGIN_DIR . 'includes/woocommerce/members-only-store.php';
 
 	rwdpwa_register_order_routing();
 	rwdpwa_register_text_overrides();
 	rwdpwa_register_price_display();
+	rwdpwa_register_quote_checkout();
+	rwdpwa_register_members_only_store();
 	rwdpwa_register_geocode_cache_hooks();
 
 	if ( is_admin() ) {

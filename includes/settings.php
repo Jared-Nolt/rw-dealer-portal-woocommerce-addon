@@ -45,6 +45,20 @@ function rwdpwa_get_default_settings() {
 			'admin_message'  => '',
 			'dealer_message' => '',
 		),
+		'dealer_routing'      => true, // Email the nearest dealer about each order (original behavior).
+		'quote_checkout'      => array(
+			'enabled'        => false, // Checkout without online payment; orders wait for the office.
+			'title'          => 'Submit to office',
+			'description'    => 'No payment is taken online. The office will review your order, add shipping and send an invoice.',
+			'defer_shipping' => true,
+			'shipping_note'  => 'Shipping will be added by the office.',
+			'po_field'       => false,
+			'po_label'       => 'PO Number',
+			'po_required'    => false,
+		),
+		'store_access'        => array(
+			'members_only' => false, // Store, cart and checkout for approved RW Dealer Portal members only.
+		),
 	);
 }
 
@@ -163,6 +177,30 @@ function rwdpwa_sanitize_settings( $input ) {
 		'dealer_message' => sanitize_textarea_field( $messages['dealer_message'] ?? '' ),
 	);
 
+	$clean['dealer_routing'] = ! empty( $input['dealer_routing'] );
+
+	$quote                   = is_array( $input['quote_checkout'] ?? null ) ? $input['quote_checkout'] : array();
+	$quote_defaults          = $defaults['quote_checkout'];
+	$quote_text              = static function ( $key, $callback = 'sanitize_text_field' ) use ( $quote, $quote_defaults ) {
+		$value = call_user_func( $callback, $quote[ $key ] ?? '' );
+		return '' !== trim( $value ) ? $value : $quote_defaults[ $key ];
+	};
+	$clean['quote_checkout'] = array(
+		'enabled'        => ! empty( $quote['enabled'] ),
+		'title'          => $quote_text( 'title' ),
+		'description'    => $quote_text( 'description', 'sanitize_textarea_field' ),
+		'defer_shipping' => ! empty( $quote['defer_shipping'] ),
+		'shipping_note'  => sanitize_text_field( $quote['shipping_note'] ?? '' ),
+		'po_field'       => ! empty( $quote['po_field'] ),
+		'po_label'       => $quote_text( 'po_label' ),
+		'po_required'    => ! empty( $quote['po_required'] ),
+	);
+
+	$access                = is_array( $input['store_access'] ?? null ) ? $input['store_access'] : array();
+	$clean['store_access'] = array(
+		'members_only' => ! empty( $access['members_only'] ),
+	);
+
 	return $clean;
 }
 
@@ -200,6 +238,45 @@ function rwdpwa_get_custom_text() {
 	$settings = rwdpwa_get_settings();
 	$text     = trim( (string) $settings['wc_overrides']['custom_text'] );
 	return '' !== $text ? $text : 'quote request';
+}
+
+/**
+ * Quote checkout settings (no online payment).
+ *
+ * @return array
+ */
+function rwdpwa_get_quote_settings() {
+	$settings = rwdpwa_get_settings();
+	return $settings['quote_checkout'];
+}
+
+/**
+ * Whether quote checkout is turned on.
+ *
+ * @return bool
+ */
+function rwdpwa_quote_checkout_enabled() {
+	return ! empty( rwdpwa_get_quote_settings()['enabled'] );
+}
+
+/**
+ * Whether the store is limited to approved RW Dealer Portal members.
+ *
+ * @return bool
+ */
+function rwdpwa_members_only_store_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['store_access']['members_only'] );
+}
+
+/**
+ * Whether orders are routed to the nearest dealer.
+ *
+ * @return bool
+ */
+function rwdpwa_dealer_routing_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['dealer_routing'] );
 }
 
 /**
