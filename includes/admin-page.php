@@ -415,6 +415,11 @@ function rwdpwa_render_settings_page() {
 								<label for="rwdpwa-quote-description"><?php esc_html_e( 'Message at checkout:', 'rw-dealer-portal-woocommerce-addon' ); ?></label><br />
 								<textarea id="rwdpwa-quote-description" name="rwdpwa_settings[quote_checkout][description]" class="large-text" rows="2"><?php echo esc_textarea( $quote['description'] ); ?></textarea>
 							</p>
+							<p>
+								<label for="rwdpwa-quote-email-intro"><?php esc_html_e( 'Message in the customer\'s confirmation email:', 'rw-dealer-portal-woocommerce-addon' ); ?></label><br />
+								<textarea id="rwdpwa-quote-email-intro" name="rwdpwa_settings[quote_checkout][email_intro]" class="large-text" rows="2"><?php echo esc_textarea( $quote['email_intro'] ); ?></textarea>
+								<span class="description"><?php esc_html_e( 'Replaces WooCommerce\'s "on-hold until we confirm that payment has been received". Email subjects and headings also say "quote request" when the text overrides are on.', 'rw-dealer-portal-woocommerce-addon' ); ?></span>
+							</p>
 						</td>
 					</tr>
 					<tr>

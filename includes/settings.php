@@ -55,6 +55,7 @@ function rwdpwa_get_default_settings() {
 			'po_field'       => false,
 			'po_label'       => 'PO Number',
 			'po_required'    => false,
+			'email_intro'    => 'Thank you for your quote request. The office will review it, add shipping and send you an invoice.',
 		),
 		'store_access'        => array(
 			'members_only' => false, // Store, cart and checkout for approved RW Dealer Portal members only.
@@ -198,6 +199,7 @@ function rwdpwa_sanitize_settings( $input ) {
 		'po_field'       => ! empty( $quote['po_field'] ),
 		'po_label'       => $quote_text( 'po_label' ),
 		'po_required'    => ! empty( $quote['po_required'] ),
+		'email_intro'    => $quote_text( 'email_intro', 'sanitize_textarea_field' ),
 	);
 
 	$access                = is_array( $input['store_access'] ?? null ) ? $input['store_access'] : array();

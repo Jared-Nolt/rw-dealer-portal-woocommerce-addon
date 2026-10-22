@@ -28,6 +28,14 @@ function rwdpwa_register_quote_checkout() {
 	add_filter( 'woocommerce_order_needs_payment', 'rwdpwa_quote_order_needs_payment', 100, 2 );
 	add_filter( 'woocommerce_get_order_item_totals', 'rwdpwa_quote_order_item_totals', 20, 2 );
 
+	// Order emails say "quote request" and drop WooCommerce's "until payment is received" wording.
+	add_filter( 'woocommerce_email_subject_customer_on_hold_order', 'rwdpwa_quote_email_subject', 20, 3 );
+	add_filter( 'woocommerce_email_heading_customer_on_hold_order', 'rwdpwa_quote_email_heading', 20, 3 );
+	add_filter( 'woocommerce_email_subject_new_order', 'rwdpwa_quote_email_subject', 20, 3 );
+	add_filter( 'woocommerce_email_heading_new_order', 'rwdpwa_quote_email_heading', 20, 3 );
+	add_filter( 'gettext', 'rwdpwa_quote_email_intro_text', 20, 3 );
+	add_action( 'woocommerce_email_footer', 'rwdpwa_quote_email_reset' );
+
 	if ( ! empty( $quote['defer_shipping'] ) ) {
 		// No shipping methods or rates at checkout, but still collect the ship-to address.
 		add_filter( 'woocommerce_cart_needs_shipping', '__return_false', 100 );
@@ -200,4 +208,110 @@ function rwdpwa_quote_admin_po_number( $order ) {
 		esc_html( rwdpwa_get_quote_settings()['po_label'] ),
 		esc_html( $po )
 	);
+}
+
+/**
+ * The word customers see for an order: the text-override term ("quote request") or "order".
+ *
+ * @return string
+ */
+function rwdpwa_quote_term() {
+	return rwdpwa_wc_override_enabled( 'text_overrides' ) ? rwdpwa_get_custom_text() : __( 'order', 'rw-dealer-portal-woocommerce-addon' );
+}
+
+/**
+ * Whether an email is for an order placed through quote checkout. Remembers
+ * the answer for the email being rendered, so its body text can follow.
+ *
+ * @param mixed $order Email object (order).
+ * @return bool
+ */
+function rwdpwa_quote_email_is_quote( $order ) {
+	$is_quote                         = $order instanceof WC_Order && 'rwdpwa_quote' === $order->get_payment_method();
+	$GLOBALS['rwdpwa_quote_email_on'] = $is_quote;
+	return $is_quote;
+}
+
+/**
+ * Forget the current email once its footer is rendered.
+ */
+function rwdpwa_quote_email_reset() {
+	$GLOBALS['rwdpwa_quote_email_on'] = false;
+}
+
+/**
+ * Subjects: "Your {site} quote request has been received" / "[{site}]: New quote request #123 (PO 456)".
+ *
+ * @param string        $subject Subject.
+ * @param mixed         $order   Order.
+ * @param WC_Email|null $email   Email.
+ * @return string
+ */
+function rwdpwa_quote_email_subject( $subject, $order, $email = null ) {
+	if ( ! rwdpwa_quote_email_is_quote( $order ) || ! $email instanceof WC_Email ) {
+		return $subject;
+	}
+
+	$term = rwdpwa_quote_term();
+	if ( 'new_order' === $email->id ) {
+		/* translators: %s: "quote request" */
+		$subject = $email->format_string( sprintf( __( '[{site_title}]: New %s #{order_number}', 'rw-dealer-portal-woocommerce-addon' ), $term ) );
+		$po      = (string) $order->get_meta( '_rwdpwa_po_number' );
+		if ( '' !== $po ) {
+			$subject .= ' (' . rwdpwa_get_quote_settings()['po_label'] . ' ' . $po . ')';
+		}
+		return $subject;
+	}
+
+	/* translators: %s: "quote request" */
+	return $email->format_string( sprintf( __( 'Your {site_title} %s has been received', 'rw-dealer-portal-woocommerce-addon' ), $term ) );
+}
+
+/**
+ * Headings: "Thank you for your quote request" / "New quote request: #123".
+ *
+ * @param string        $heading Heading.
+ * @param mixed         $order   Order.
+ * @param WC_Email|null $email   Email.
+ * @return string
+ */
+function rwdpwa_quote_email_heading( $heading, $order, $email = null ) {
+	if ( ! rwdpwa_quote_email_is_quote( $order ) || ! $email instanceof WC_Email ) {
+		return $heading;
+	}
+
+	$term = rwdpwa_quote_term();
+	if ( 'new_order' === $email->id ) {
+		/* translators: %s: "quote request" */
+		return $email->format_string( sprintf( __( 'New %s: #{order_number}', 'rw-dealer-portal-woocommerce-addon' ), $term ) );
+	}
+
+	/* translators: %s: "quote request" */
+	return sprintf( __( 'Thank you for your %s', 'rw-dealer-portal-woocommerce-addon' ), $term );
+}
+
+/**
+ * Replace the on-hold email's "until payment is received" line while a
+ * quote order's email is being rendered.
+ *
+ * @param string $translated Translated text.
+ * @param string $text       Original text.
+ * @param string $domain     Text domain.
+ * @return string
+ */
+function rwdpwa_quote_email_intro_text( $translated, $text, $domain ) {
+	if ( 'woocommerce' !== $domain || empty( $GLOBALS['rwdpwa_quote_email_on'] ) ) {
+		return $translated;
+	}
+
+	static $on_hold = array(
+		'Thanks for your order. It’s on-hold until we confirm that payment has been received.' => true,
+		'We’ve received your order and it’s currently on hold until we can confirm your payment has been processed.' => true,
+	);
+
+	if ( isset( $on_hold[ $text ] ) ) {
+		$intro = trim( (string) rwdpwa_get_quote_settings()['email_intro'] );
+		return '' !== $intro ? $intro : $translated;
+	}
+	return $translated;
 }
