@@ -268,6 +268,109 @@
 	text-decoration: underline;
 }
 
+/* ── style="catalog": plain heading, title-on-top cards (3-up) ──────── */
+:where(.rwdpwa-pl--catalog) {
+	--rwdpwa-pl-heading-color: var(--rwdpwa-pl-text-color);
+	--rwdpwa-pl-gap: 10px;
+	--rwdpwa-pl-radius: 8px;
+	--rwdpwa-pl-media-radius: 6px;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__header {
+	margin: 0 0 2rem;
+	padding: 0;
+	background: none;
+	clip-path: none;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__eyebrow {
+	color: var(--rwdpwa-pl-heading-color);
+}
+
+.rwdpwa-pl.rwdpwa-pl--catalog .rwdpwa-pl__heading {
+	font-size: clamp(2rem, 1.5rem + 1.6vw, 3rem);
+	font-weight: 300;
+	text-transform: none;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 1rem;
+}
+
+.rwdpwa-pl.rwdpwa-pl--catalog .rwdpwa-pl__title {
+	font-size: 1.125rem;
+	font-weight: 700;
+	letter-spacing: 0;
+	text-align: center;
+	text-transform: none;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__media {
+	height: auto;
+	aspect-ratio: 341 / 300;
+	padding: 0.5rem;
+	border-radius: var(--rwdpwa-pl-media-radius);
+	overflow: hidden;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__body {
+	flex: 1;
+	gap: 0.5rem;
+	padding: 0;
+}
+
+.rwdpwa-pl--catalog .rwdpwa-pl__form {
+	gap: 0.6rem;
+}
+
+.rwdpwa-pl.rwdpwa-pl--catalog .rwdpwa-pl__row {
+	font-weight: 700;
+	letter-spacing: 0.08em;
+}
+
+.rwdpwa-pl.rwdpwa-pl--catalog .rwdpwa-pl__button {
+	align-self: stretch;
+	padding: 0.7em 1.2em;
+	border-radius: 999px;
+	font-size: 0.8rem;
+}
+
+/* Cards on a white rounded panel. */
+.rwdpwa-pl__panel {
+	padding: 24px;
+	background: #ffffff;
+	border-radius: 16px;
+}
+
+/* Full-width section background without breaking out of the layout. */
+.rwdpwa-pl.rwdpwa-pl--bg {
+	margin: 0;
+	padding: clamp(2.5rem, 2rem + 2vw, 4.5rem) 0;
+	background: var(--rwdpwa-pl-section-bg);
+	box-shadow: 0 0 0 100vmax var(--rwdpwa-pl-section-bg);
+	clip-path: inset(0 -100vmax);
+}
+
+@media (max-width: 1024px) {
+	.rwdpwa-pl--catalog.rwdpwa-pl--cols-3 .rwdpwa-pl__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.rwdpwa-pl--catalog.rwdpwa-pl--cols-3 .rwdpwa-pl__grid,
+	.rwdpwa-pl--catalog.rwdpwa-pl--cols-2 .rwdpwa-pl__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.rwdpwa-pl__panel {
+		padding: 12px;
+	}
+}
+
 /* [rwdpwa_store_links] */
 .rwdpwa-store-links {
 	display: flex;

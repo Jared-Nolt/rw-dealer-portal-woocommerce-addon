@@ -139,6 +139,9 @@ function rwdpwa_product_list_shortcode( $atts = array() ) {
 		'title_color'   => '',
 		'media_bg'      => '',
 		'card_bg'       => '',
+		'style'         => 'band',   // 'band' (header band, side-by-side cards) | 'catalog' (plain heading, title-on-top cards).
+		'background'    => '',       // Full-width section background color.
+		'panel'         => '',       // 'yes' = cards sit on a white rounded panel.
 		'columns'       => 2,
 		'limit'         => -1,
 		'button_text'   => $wording['button'],
@@ -173,6 +176,22 @@ function rwdpwa_product_list_shortcode( $atts = array() ) {
 
 	$columns = max( 1, min( 3, (int) $atts['columns'] ) );
 	$style   = array( '--rwdpwa-pl-columns:' . $columns );
+	$catalog = 'catalog' === $atts['style'];
+	$panel   = in_array( strtolower( (string) $atts['panel'] ), array( 'yes', '1', 'true' ), true );
+	$classes = array( 'rwdpwa-pl', 'rwdpwa-pl--cols-' . $columns, $catalog ? 'rwdpwa-pl--catalog' : 'rwdpwa-pl--band' );
+	$bg      = sanitize_hex_color( $atts['background'] );
+	if ( $bg ) {
+		$classes[] = 'rwdpwa-pl--bg';
+		$style[]   = '--rwdpwa-pl-section-bg:' . $bg;
+	}
+	if ( $panel ) {
+		$classes[] = 'rwdpwa-pl--panel';
+	}
+	foreach ( preg_split( '/\s+/', (string) $atts['class'] ) as $extra ) {
+		if ( '' !== $extra ) {
+			$classes[] = sanitize_html_class( $extra );
+		}
+	}
 	foreach ( array( 'accent', 'accent_text', 'heading_color', 'title_color', 'media_bg', 'card_bg' ) as $key ) {
 		$color = sanitize_hex_color( $atts[ $key ] );
 		if ( $color ) {
@@ -184,7 +203,7 @@ function rwdpwa_product_list_shortcode( $atts = array() ) {
 
 	ob_start();
 	?>
-	<section class="rwdpwa-pl rwdpwa-pl--cols-<?php echo esc_attr( $columns ); ?> <?php echo esc_attr( $atts['class'] ); ?>" style="<?php echo esc_attr( implode( ';', $style ) ); ?>">
+	<section class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" style="<?php echo esc_attr( implode( ';', $style ) ); ?>">
 		<?php
 		if ( ! $printed_notices && function_exists( 'wc_print_notices' ) && WC()->session ) {
 			$printed_notices = true;
@@ -207,11 +226,13 @@ function rwdpwa_product_list_shortcode( $atts = array() ) {
 		<?php if ( ! $products ) : ?>
 			<p class="rwdpwa-pl__empty"><?php echo esc_html( $atts['empty_text'] ); ?></p>
 		<?php else : ?>
+			<?php echo $panel ? '<div class="rwdpwa-pl__panel">' : ''; ?>
 			<div class="rwdpwa-pl__grid">
 				<?php foreach ( $products as $product ) : ?>
-					<?php echo rwdpwa_product_list_card( $product, $atts['button_text'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?>
+					<?php echo rwdpwa_product_list_card( $product, $atts['button_text'], $catalog ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped inside. ?>
 				<?php endforeach; ?>
 			</div>
+			<?php echo $panel ? '</div>' : ''; ?>
 		<?php endif; ?>
 	</section>
 	<?php
@@ -255,9 +276,10 @@ function rwdpwa_product_list_rows( $product ) {
  *
  * @param WC_Product $product     Product.
  * @param string     $button_text Button label.
+ * @param bool       $catalog     Catalog style: title above the image.
  * @return string
  */
-function rwdpwa_product_list_card( $product, $button_text ) {
+function rwdpwa_product_list_card( $product, $button_text, $catalog = false ) {
 	$rows        = rwdpwa_product_list_rows( $product );
 	$single      = 1 === count( $rows );
 	$description = $product->get_description() ?: $product->get_short_description();
@@ -269,9 +291,14 @@ function rwdpwa_product_list_card( $product, $button_text ) {
 	ob_start();
 	?>
 	<article class="rwdpwa-pl__card" id="<?php echo esc_attr( $id ); ?>">
+		<?php if ( $catalog ) : ?>
+			<h3 class="rwdpwa-pl__title"><?php echo esc_html( $product->get_name() ); ?></h3>
+		<?php endif; ?>
 		<div class="rwdpwa-pl__media"><?php echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- core image markup. ?></div>
 		<div class="rwdpwa-pl__body">
-			<h3 class="rwdpwa-pl__title"><?php echo esc_html( $product->get_name() ); ?></h3>
+			<?php if ( ! $catalog ) : ?>
+				<h3 class="rwdpwa-pl__title"><?php echo esc_html( $product->get_name() ); ?></h3>
+			<?php endif; ?>
 			<?php if ( $description ) : ?>
 				<div class="rwdpwa-pl__description"><?php echo wp_kses_post( wpautop( $description ) ); ?></div>
 			<?php endif; ?>
