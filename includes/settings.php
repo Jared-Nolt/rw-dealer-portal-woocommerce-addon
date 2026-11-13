@@ -46,6 +46,7 @@ function rwdpwa_get_default_settings() {
 			'dealer_message' => '',
 		),
 		'dealer_routing'      => true, // Email the nearest dealer about each order (original behavior).
+		'skip_dealer_orders'  => true, // Never route an order placed by a dealer/portal account to another dealer.
 		'quote_checkout'      => array(
 			'enabled'        => false, // Checkout without online payment; orders wait for the office.
 			'title'          => 'Submit to office',
@@ -182,7 +183,8 @@ function rwdpwa_sanitize_settings( $input ) {
 		'dealer_message' => sanitize_textarea_field( $messages['dealer_message'] ?? '' ),
 	);
 
-	$clean['dealer_routing'] = ! empty( $input['dealer_routing'] );
+	$clean['dealer_routing']     = ! empty( $input['dealer_routing'] );
+	$clean['skip_dealer_orders'] = ! empty( $input['skip_dealer_orders'] );
 
 	$quote                   = is_array( $input['quote_checkout'] ?? null ) ? $input['quote_checkout'] : array();
 	$quote_defaults          = $defaults['quote_checkout'];
@@ -298,6 +300,16 @@ function rwdpwa_get_store_page_id() {
 function rwdpwa_dealer_routing_enabled() {
 	$settings = rwdpwa_get_settings();
 	return ! empty( $settings['dealer_routing'] );
+}
+
+/**
+ * Whether orders placed by dealer accounts are kept out of dealer routing.
+ *
+ * @return bool
+ */
+function rwdpwa_skip_dealer_orders_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['skip_dealer_orders'] );
 }
 
 /**

@@ -209,7 +209,14 @@ function rwdpwa_render_settings_page() {
 						<?php esc_html_e( 'Email the nearest dealer about each new order', 'rw-dealer-portal-woocommerce-addon' ); ?>
 					</label>
 				</p>
-				<p class="description"><?php esc_html_e( 'Turn this off when the customers are the dealers themselves (e.g. a dealer-only store). The settings below are only used while it is on.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Turn this off when the customers are the dealers themselves (e.g. a dealer-only or POP store). Otherwise one dealer\'s order would be copied to a nearby dealer. The settings below are only used while it is on.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+				<p>
+					<label>
+						<input type="checkbox" name="rwdpwa_settings[skip_dealer_orders]" value="1" <?php checked( $settings['skip_dealer_orders'] ); ?> />
+						<?php esc_html_e( 'Never email another dealer about an order placed by a dealer account', 'rw-dealer-portal-woocommerce-addon' ); ?>
+					</label>
+				</p>
+				<p class="description"><?php esc_html_e( 'Recommended. A dealer account is a portal member, a user linked to a dealer listing, or (for the User Role source) a user with the dealer role. Guest orders are matched by billing email. Skipped orders get an order note.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 				<p class="description"><?php esc_html_e( 'Choose where this plugin should look for dealers.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 
 				<p>
@@ -331,6 +338,7 @@ function rwdpwa_render_settings_page() {
 
 			<div class="rwdpwa-card">
 				<h2><?php esc_html_e( 'Routing', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'How the dealer email works: when WooCommerce sends its New Order email, the order address (shipping, or billing if there is none) is geocoded and the single nearest dealer within the radius gets one separate copy a moment later. Each order is emailed to a dealer at most once: resending the New Order email, status changes and retries never send it again. The order gets a note naming the dealer. Dealers need coordinates and a contact email to be matched; use Test Address below to check.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><label for="rwdpwa-radius-miles"><?php esc_html_e( 'Search Radius', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
