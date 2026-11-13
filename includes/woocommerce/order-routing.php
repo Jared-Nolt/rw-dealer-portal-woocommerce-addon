@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function rwdpwa_register_order_routing() {
+	// Off for stores where customers are the dealers themselves (e.g. POP ordering).
+	if ( ! rwdpwa_dealer_routing_enabled() ) {
+		return;
+	}
+
 	add_filter( 'woocommerce_email_recipient_new_order', 'rwdpwa_trigger_dealer_notification', 10, 2 );
 	add_action( 'woocommerce_email_order_details', 'rwdpwa_render_email_custom_message', 5, 4 );
 	add_action( 'rwdpwa_send_dealer_notification', 'rwdpwa_handle_scheduled_dealer_notification' );
@@ -36,6 +41,11 @@ function rwdpwa_trigger_dealer_notification( $recipient, $order ) {
 		return $recipient;
 	}
 
+	if ( rwdpwa_order_placed_by_dealer( $order ) ) {
+		rwdpwa_note_routing_skipped( $order );
+		return $recipient;
+	}
+
 	$dealer = rwdpwa_get_nearest_dealer_for_order( $order );
 	if ( $dealer && rwdpwa_claim_dealer_notification( $order->get_id() ) ) {
 		$args = array( $order->get_id() );
@@ -47,6 +57,63 @@ function rwdpwa_trigger_dealer_notification( $recipient, $order ) {
 	}
 
 	return $recipient;
+}
+
+/**
+ * Whether an order was placed by a dealer (a portal member, a user linked to a
+ * dealer listing, or a user with the configured dealer role). Such orders are
+ * never copied to another dealer while "skip_dealer_orders" is on, so a
+ * dealer-only store (e.g. POP ordering) can't leak one dealer's order to a
+ * competitor even if routing was left on by mistake.
+ *
+ * Guest orders are matched to an account by billing email.
+ *
+ * @param WC_Order $order WooCommerce order object.
+ * @return bool
+ */
+function rwdpwa_order_placed_by_dealer( $order ) {
+	if ( ! rwdpwa_skip_dealer_orders_enabled() ) {
+		return false;
+	}
+
+	$user = $order->get_user();
+	if ( ! $user && is_email( $order->get_billing_email() ) ) {
+		$user = get_user_by( 'email', $order->get_billing_email() );
+	}
+
+	$is_dealer = false;
+	if ( $user instanceof WP_User ) {
+		$is_dealer = ( function_exists( 'rwdp_user_is_portal_member' ) && rwdp_user_is_portal_member( $user ) )
+			|| ! empty( get_user_meta( $user->ID, '_rwdp_dealer_ids', true ) );
+
+		$role_config = rwdpwa_get_settings()['user_role'];
+		if ( ! $is_dealer && 'user_role' === rwdpwa_get_dealer_source() && ! empty( $role_config['role'] ) ) {
+			$is_dealer = in_array( $role_config['role'], (array) $user->roles, true );
+		}
+	}
+
+	/**
+	 * Filter whether an order counts as placed by a dealer (and so skips dealer routing).
+	 *
+	 * @param bool          $is_dealer Whether the order was placed by a dealer.
+	 * @param WC_Order      $order     Order.
+	 * @param WP_User|false $user      Matched account, if any.
+	 */
+	return (bool) apply_filters( 'rwdpwa_order_placed_by_dealer', $is_dealer, $order, $user );
+}
+
+/**
+ * Leave one order note explaining why no dealer was emailed.
+ *
+ * @param WC_Order $order WooCommerce order object.
+ */
+function rwdpwa_note_routing_skipped( $order ) {
+	if ( $order->get_meta( '_rwdpwa_routing_skipped' ) ) {
+		return;
+	}
+	$order->update_meta_data( '_rwdpwa_routing_skipped', 'dealer_account' );
+	$order->save_meta_data();
+	$order->add_order_note( __( 'Dealer routing skipped: this order was placed by a dealer account, so no other dealer was emailed.', 'rw-dealer-portal-woocommerce-addon' ) );
 }
 
 /**
@@ -112,6 +179,11 @@ function rwdpwa_get_nearest_dealer_for_order( $order ) {
 	$order_id = $order->get_id();
 	if ( array_key_exists( $order_id, $cache ) ) {
 		return $cache[ $order_id ];
+	}
+
+	// Checked here too so the scheduled send and the office's email note follow the same rule.
+	if ( rwdpwa_order_placed_by_dealer( $order ) ) {
+		return $cache[ $order_id ] = null;
 	}
 
 	$coords = rwdpwa_get_order_coordinates( $order );
@@ -217,6 +289,12 @@ function rwdpwa_send_dealer_notification_email( $order, $dealer ) {
 	if ( $sent ) {
 		$order->update_meta_data( '_rwdpwa_dealer_notified', $dealer['label'] );
 		$order->save_meta_data();
+		$order->add_order_note( sprintf(
+			/* translators: 1: dealer name, 2: dealer email address(es) */
+			__( 'Order copy emailed to the nearest dealer: %1$s (%2$s).', 'rw-dealer-portal-woocommerce-addon' ),
+			$dealer['label'],
+			$to
+		) );
 	}
 
 	return $sent;

@@ -187,6 +187,8 @@ function rwdpwa_render_settings_page() {
 	$user_role      = $settings['user_role'];
 	$overrides      = $settings['wc_overrides'];
 	$email_messages = $settings['email_messages'];
+	$quote          = $settings['quote_checkout'];
+	$access         = $settings['store_access'];
 	$post_types     = rwdpwa_get_selectable_post_types();
 	$roles          = rwdpwa_get_selectable_roles();
 	?>
@@ -201,6 +203,20 @@ function rwdpwa_render_settings_page() {
 
 			<div class="rwdpwa-card">
 				<h2><?php esc_html_e( 'Dealer Source', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p>
+					<label>
+						<input type="checkbox" name="rwdpwa_settings[dealer_routing]" value="1" <?php checked( $settings['dealer_routing'] ); ?> />
+						<?php esc_html_e( 'Email the nearest dealer about each new order', 'rw-dealer-portal-woocommerce-addon' ); ?>
+					</label>
+				</p>
+				<p class="description"><?php esc_html_e( 'Turn this off when the customers are the dealers themselves (e.g. a dealer-only or POP store). Otherwise one dealer\'s order would be copied to a nearby dealer. The settings below are only used while it is on.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+				<p>
+					<label>
+						<input type="checkbox" name="rwdpwa_settings[skip_dealer_orders]" value="1" <?php checked( $settings['skip_dealer_orders'] ); ?> />
+						<?php esc_html_e( 'Never email another dealer about an order placed by a dealer account', 'rw-dealer-portal-woocommerce-addon' ); ?>
+					</label>
+				</p>
+				<p class="description"><?php esc_html_e( 'Recommended. A dealer account is a portal member, a user linked to a dealer listing, or (for the User Role source) a user with the dealer role. Guest orders are matched by billing email. Skipped orders get an order note.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 				<p class="description"><?php esc_html_e( 'Choose where this plugin should look for dealers.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 
 				<p>
@@ -322,6 +338,7 @@ function rwdpwa_render_settings_page() {
 
 			<div class="rwdpwa-card">
 				<h2><?php esc_html_e( 'Routing', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'How the dealer email works: when WooCommerce sends its New Order email, the order address (shipping, or billing if there is none) is geocoded and the single nearest dealer within the radius gets one separate copy a moment later. Each order is emailed to a dealer at most once: resending the New Order email, status changes and retries never send it again. The order gets a note naming the dealer. Dealers need coordinates and a contact email to be matched; use Test Address below to check.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><label for="rwdpwa-radius-miles"><?php esc_html_e( 'Search Radius', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
@@ -382,6 +399,119 @@ function rwdpwa_render_settings_page() {
 								<input type="text" id="rwdpwa-free-text" name="rwdpwa_settings[wc_overrides][free_text]" value="<?php echo esc_attr( $overrides['free_text'] ); ?>" class="regular-text" placeholder="Free" />
 							</p>
 							<p class="description"><?php esc_html_e( 'Only applies when "Hide Prices & Totals" is off.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div class="rwdpwa-card">
+				<h2><?php esc_html_e( 'Quote Checkout & Store Access', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p class="description"><?php esc_html_e( 'For stores where customers check out without paying online and the office invoices them. Requires the classic checkout page (the [woocommerce_checkout] shortcode).', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Quote Checkout', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[quote_checkout][enabled]" value="1" <?php checked( $quote['enabled'] ); ?> />
+								<?php esc_html_e( 'Check out without payment. Every order is placed "On hold" for the office; no other payment methods are offered.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p>
+								<label for="rwdpwa-quote-title"><?php esc_html_e( 'Payment method name:', 'rw-dealer-portal-woocommerce-addon' ); ?></label>
+								<input type="text" id="rwdpwa-quote-title" name="rwdpwa_settings[quote_checkout][title]" value="<?php echo esc_attr( $quote['title'] ); ?>" class="regular-text" />
+							</p>
+							<p>
+								<label for="rwdpwa-quote-description"><?php esc_html_e( 'Message at checkout:', 'rw-dealer-portal-woocommerce-addon' ); ?></label><br />
+								<textarea id="rwdpwa-quote-description" name="rwdpwa_settings[quote_checkout][description]" class="large-text" rows="2"><?php echo esc_textarea( $quote['description'] ); ?></textarea>
+							</p>
+							<p>
+								<label for="rwdpwa-quote-email-intro"><?php esc_html_e( 'Message in the customer\'s confirmation email:', 'rw-dealer-portal-woocommerce-addon' ); ?></label><br />
+								<textarea id="rwdpwa-quote-email-intro" name="rwdpwa_settings[quote_checkout][email_intro]" class="large-text" rows="2"><?php echo esc_textarea( $quote['email_intro'] ); ?></textarea>
+								<span class="description"><?php esc_html_e( 'Replaces WooCommerce\'s "on-hold until we confirm that payment has been received". Email subjects and headings also say "quote request" when the text overrides are on.', 'rw-dealer-portal-woocommerce-addon' ); ?></span>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Shipping', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[quote_checkout][defer_shipping]" value="1" <?php checked( $quote['defer_shipping'] ); ?> />
+								<?php esc_html_e( 'The office adds shipping later: no shipping methods or rates at checkout (the ship-to address is still collected).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p>
+								<label for="rwdpwa-quote-shipping-note"><?php esc_html_e( 'Shipping note:', 'rw-dealer-portal-woocommerce-addon' ); ?></label>
+								<input type="text" id="rwdpwa-quote-shipping-note" name="rwdpwa_settings[quote_checkout][shipping_note]" value="<?php echo esc_attr( $quote['shipping_note'] ); ?>" class="regular-text" />
+								<span class="description"><?php esc_html_e( 'Shown in the cart, checkout, order page and emails. Leave blank to hide.', 'rw-dealer-portal-woocommerce-addon' ); ?></span>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'PO Number', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[quote_checkout][po_field]" value="1" <?php checked( $quote['po_field'] ); ?> />
+								<?php esc_html_e( 'Add a PO number field to checkout (saved on the order, shown in the admin and emails).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p>
+								<label for="rwdpwa-quote-po-label"><?php esc_html_e( 'Field label:', 'rw-dealer-portal-woocommerce-addon' ); ?></label>
+								<input type="text" id="rwdpwa-quote-po-label" name="rwdpwa_settings[quote_checkout][po_label]" value="<?php echo esc_attr( $quote['po_label'] ); ?>" class="regular-text" />
+							</p>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[quote_checkout][po_required]" value="1" <?php checked( $quote['po_required'] ); ?> />
+								<?php esc_html_e( 'Required', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Members-only Store', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][members_only]" value="1" <?php checked( $access['members_only'] ); ?> <?php disabled( ! function_exists( 'rwdp_current_user_has_portal_access' ) ); ?> />
+								<?php esc_html_e( 'Only approved RW Dealer Portal members (and staff) can see the shop, products, cart and checkout. Everyone else is sent to the portal login.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<?php if ( ! function_exists( 'rwdp_current_user_has_portal_access' ) ) : ?>
+								<p class="description"><?php esc_html_e( 'Requires RW Dealer Portal.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+							<?php endif; ?>
+							<p class="description"><?php esc_html_e( 'Pages that show products (e.g. a POP page) are restricted separately, in that page’s "Portal Access" box (RW Dealer Portal).', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="rwdpwa-store-page"><?php esc_html_e( 'Store Page', 'rw-dealer-portal-woocommerce-addon' ); ?></label></th>
+						<td>
+							<?php
+							wp_dropdown_pages( array(
+								'name'              => 'rwdpwa_settings[store_access][store_page]',
+								'id'                => 'rwdpwa-store-page',
+								'selected'          => absint( $access['store_page'] ),
+								'show_option_none'  => esc_html__( '— WooCommerce shop page —', 'rw-dealer-portal-woocommerce-addon' ),
+								'option_none_value' => '0',
+							) );
+							?>
+							<p class="description"><?php esc_html_e( 'Optional. A page built with [rwdpwa_product_list] sections (e.g. a POP page). The shop page and "Return to shop" / "Continue shopping" links go here instead.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Store Page Styling', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][style_pages]" value="1" <?php checked( $access['style_pages'] ); ?> />
+								<?php esc_html_e( 'Style the cart, checkout, order-received and My Account pages to match [rwdpwa_product_list] sections.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Colors and fonts come from the same CSS custom properties, e.g. .rwdpwa-pl, body.rwdpwa-store { --rwdpwa-pl-accent: #312d41; --rwdpwa-pl-label-font: "My Font"; }', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Dealer Accounts', 'rw-dealer-portal-woocommerce-addon' ); ?></th>
+						<td>
+							<?php $has_rwdp = function_exists( 'rwdp_get_page_id' ); ?>
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][prefill_checkout]" value="1" <?php checked( $access['prefill_checkout'] ); ?> <?php disabled( ! $has_rwdp ); ?> />
+								<?php esc_html_e( 'Pre-fill empty checkout fields from the user\'s RW Dealer Portal dealer (company, address, phone) and profile (name, email).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label><br />
+							<label>
+								<input type="checkbox" name="rwdpwa_settings[store_access][simple_account]" value="1" <?php checked( $access['simple_account'] ); ?> <?php disabled( ! $has_rwdp ); ?> />
+								<?php esc_html_e( 'Simplify My Account to Orders, Addresses, Dealer Portal and Log out (opens on Orders).', 'rw-dealer-portal-woocommerce-addon' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Place [rwdpwa_store_links] on portal pages for Shop / cart (with item count) / My Orders links.', 'rw-dealer-portal-woocommerce-addon' ); ?></p>
 						</td>
 					</tr>
 				</table>

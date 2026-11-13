@@ -45,6 +45,26 @@ function rwdpwa_get_default_settings() {
 			'admin_message'  => '',
 			'dealer_message' => '',
 		),
+		'dealer_routing'      => true, // Email the nearest dealer about each order (original behavior).
+		'skip_dealer_orders'  => true, // Never route an order placed by a dealer/portal account to another dealer.
+		'quote_checkout'      => array(
+			'enabled'        => false, // Checkout without online payment; orders wait for the office.
+			'title'          => 'Submit to office',
+			'description'    => 'No payment is taken online. The office will review your order, add shipping and send an invoice.',
+			'defer_shipping' => true,
+			'shipping_note'  => 'Shipping will be added by the office.',
+			'po_field'       => false,
+			'po_label'       => 'PO Number',
+			'po_required'    => false,
+			'email_intro'    => 'Thank you for your quote request. The office will review it, add shipping and send you an invoice.',
+		),
+		'store_access'        => array(
+			'members_only' => false, // Store, cart and checkout for approved RW Dealer Portal members only.
+			'store_page'   => 0,     // Page that replaces /shop/ and "Return to shop" links (e.g. a POP page).
+			'style_pages'  => false, // Style cart/checkout/account pages to match [rwdpwa_product_list].
+			'prefill_checkout' => false, // Fill empty checkout fields from the user's RW Dealer Portal dealer.
+			'simple_account'   => false, // My Account = Orders, Addresses, Dealer Portal, Log out.
+		),
 	);
 }
 
@@ -163,6 +183,36 @@ function rwdpwa_sanitize_settings( $input ) {
 		'dealer_message' => sanitize_textarea_field( $messages['dealer_message'] ?? '' ),
 	);
 
+	$clean['dealer_routing']     = ! empty( $input['dealer_routing'] );
+	$clean['skip_dealer_orders'] = ! empty( $input['skip_dealer_orders'] );
+
+	$quote                   = is_array( $input['quote_checkout'] ?? null ) ? $input['quote_checkout'] : array();
+	$quote_defaults          = $defaults['quote_checkout'];
+	$quote_text              = static function ( $key, $callback = 'sanitize_text_field' ) use ( $quote, $quote_defaults ) {
+		$value = call_user_func( $callback, $quote[ $key ] ?? '' );
+		return '' !== trim( $value ) ? $value : $quote_defaults[ $key ];
+	};
+	$clean['quote_checkout'] = array(
+		'enabled'        => ! empty( $quote['enabled'] ),
+		'title'          => $quote_text( 'title' ),
+		'description'    => $quote_text( 'description', 'sanitize_textarea_field' ),
+		'defer_shipping' => ! empty( $quote['defer_shipping'] ),
+		'shipping_note'  => sanitize_text_field( $quote['shipping_note'] ?? '' ),
+		'po_field'       => ! empty( $quote['po_field'] ),
+		'po_label'       => $quote_text( 'po_label' ),
+		'po_required'    => ! empty( $quote['po_required'] ),
+		'email_intro'    => $quote_text( 'email_intro', 'sanitize_textarea_field' ),
+	);
+
+	$access                = is_array( $input['store_access'] ?? null ) ? $input['store_access'] : array();
+	$clean['store_access'] = array(
+		'members_only' => ! empty( $access['members_only'] ),
+		'store_page'   => absint( $access['store_page'] ?? 0 ),
+		'style_pages'  => ! empty( $access['style_pages'] ),
+		'prefill_checkout' => ! empty( $access['prefill_checkout'] ),
+		'simple_account'   => ! empty( $access['simple_account'] ),
+	);
+
 	return $clean;
 }
 
@@ -200,6 +250,66 @@ function rwdpwa_get_custom_text() {
 	$settings = rwdpwa_get_settings();
 	$text     = trim( (string) $settings['wc_overrides']['custom_text'] );
 	return '' !== $text ? $text : 'quote request';
+}
+
+/**
+ * Quote checkout settings (no online payment).
+ *
+ * @return array
+ */
+function rwdpwa_get_quote_settings() {
+	$settings = rwdpwa_get_settings();
+	return $settings['quote_checkout'];
+}
+
+/**
+ * Whether quote checkout is turned on.
+ *
+ * @return bool
+ */
+function rwdpwa_quote_checkout_enabled() {
+	return ! empty( rwdpwa_get_quote_settings()['enabled'] );
+}
+
+/**
+ * Whether the store is limited to approved RW Dealer Portal members.
+ *
+ * @return bool
+ */
+function rwdpwa_members_only_store_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['store_access']['members_only'] );
+}
+
+/**
+ * Published page that stands in for the shop page, or 0.
+ *
+ * @return int
+ */
+function rwdpwa_get_store_page_id() {
+	$settings = rwdpwa_get_settings();
+	$page_id  = absint( $settings['store_access']['store_page'] ?? 0 );
+	return $page_id && 'publish' === get_post_status( $page_id ) ? $page_id : 0;
+}
+
+/**
+ * Whether orders are routed to the nearest dealer.
+ *
+ * @return bool
+ */
+function rwdpwa_dealer_routing_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['dealer_routing'] );
+}
+
+/**
+ * Whether orders placed by dealer accounts are kept out of dealer routing.
+ *
+ * @return bool
+ */
+function rwdpwa_skip_dealer_orders_enabled() {
+	$settings = rwdpwa_get_settings();
+	return ! empty( $settings['skip_dealer_orders'] );
 }
 
 /**
