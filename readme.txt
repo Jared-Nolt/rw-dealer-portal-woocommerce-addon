@@ -3,7 +3,7 @@ Contributors: rosewoodmarketing
 Requires at least: 6.5
 Requires PHP: 8.1
 Requires Plugins: woocommerce
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPLv2 or later
 
 Routes WooCommerce order emails to the nearest dealer, plus optional quote checkout, members-only store, product lists and WooCommerce text/price overrides.
@@ -70,6 +70,13 @@ the dealer's details, and a simple My Account menu.
 
 Replace "order" wording (e.g. with "quote request"), hide prices, and show a label such as "Free" instead of $0.00.
 
+= RW Dealer Portal update watch =
+
+Optional (off by default; "RW Dealer Portal Updates" on the settings page). On the Plugins page, a notice under
+this add-on says when RW Dealer Portal has an update or is newer than the version this add-on was tested with, and
+shows a self-check of the RW Dealer Portal functions, pages and meta keys the store, checkout and routing rely on.
+The check re-runs by itself after RW Dealer Portal updates; "Run check again" re-runs it on demand.
+
 == Setup checklist ==
 
 1. WooCommerce → Dealer Routing: decide whether dealer routing should be on (consumer store) or off (dealer store).
@@ -80,6 +87,10 @@ Replace "order" wording (e.g. with "quote request"), hide prices, and show a lab
    note, or "Dealer routing skipped" for a dealer's own order.
 
 == Changelog ==
+
+= 1.4.0 =
+* New optional RW Dealer Portal update watch: Plugins-page notice when RW Dealer Portal has an update or is newer
+  than the tested version (2.3.0), with a compatibility self-check of what this add-on needs from it.
 
 = 1.3.2 =
 * New "Never email another dealer about an order placed by a dealer account" setting (on by default): dealer

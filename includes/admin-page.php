@@ -549,6 +549,26 @@ function rwdpwa_render_settings_page() {
 				</table>
 			</div>
 
+			<div class="rwdpwa-card">
+				<h2><?php esc_html_e( 'RW Dealer Portal Updates', 'rw-dealer-portal-woocommerce-addon' ); ?></h2>
+				<p>
+					<label>
+						<input type="checkbox" name="rwdpwa_settings[core_watch]" value="1" <?php checked( ! empty( $settings['core_watch'] ) ); ?> />
+						<?php esc_html_e( 'On the Plugins page, show a notice under this add-on when RW Dealer Portal has an update or is newer than the version this add-on was tested with, and check that everything this add-on needs from RW Dealer Portal is still there.', 'rw-dealer-portal-woocommerce-addon' ); ?>
+					</label>
+				</p>
+				<p class="description">
+					<?php
+					printf(
+						/* translators: 1: tested version, 2: installed version */
+						esc_html__( 'Tested with RW Dealer Portal %1$s. Installed: %2$s. Only administrators see the notice; the check re-runs automatically after RW Dealer Portal updates.', 'rw-dealer-portal-woocommerce-addon' ),
+						esc_html( RWDPWA_TESTED_CORE ),
+						esc_html( defined( 'RWDP_VERSION' ) ? RWDP_VERSION : __( 'not active', 'rw-dealer-portal-woocommerce-addon' ) )
+					);
+					?>
+				</p>
+			</div>
+
 			<?php submit_button(); ?>
 		</form>
 

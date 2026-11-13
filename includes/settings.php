@@ -47,6 +47,7 @@ function rwdpwa_get_default_settings() {
 		),
 		'dealer_routing'      => true, // Email the nearest dealer about each order (original behavior).
 		'skip_dealer_orders'  => true, // Never route an order placed by a dealer/portal account to another dealer.
+		'core_watch'          => false, // Plugins-page notice when RW Dealer Portal updates, plus a compatibility self-check.
 		'quote_checkout'      => array(
 			'enabled'        => false, // Checkout without online payment; orders wait for the office.
 			'title'          => 'Submit to office',
@@ -185,6 +186,7 @@ function rwdpwa_sanitize_settings( $input ) {
 
 	$clean['dealer_routing']     = ! empty( $input['dealer_routing'] );
 	$clean['skip_dealer_orders'] = ! empty( $input['skip_dealer_orders'] );
+	$clean['core_watch']         = ! empty( $input['core_watch'] );
 
 	$quote                   = is_array( $input['quote_checkout'] ?? null ) ? $input['quote_checkout'] : array();
 	$quote_defaults          = $defaults['quote_checkout'];
